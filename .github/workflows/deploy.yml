@@ -20,6 +20,9 @@ jobs:
           chmod 600 ~/.ssh/id_rsa
           ssh-keyscan -H 15.235.199.146 >> ~/.ssh/known_hosts
 
+      - name: Check SSH key file format (first few lines)
+        run: head -n 5 ~/.ssh/id_rsa || true
+
       - name: Deploy to Server
         run: |
           ssh -i ~/.ssh/id_rsa ubuntu@15.235.199.146 << 'EOF'
