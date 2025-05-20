@@ -1,33 +1,22 @@
-name: 🚀 Django Deploy to Server
-
+name: Deploy to VPS
 on:
   push:
     branches:
       - master
-
 jobs:
   deploy:
     runs-on: ubuntu-latest
-
     steps:
-      - name: Checkout Repo
+      - name: Checkout Repository
         uses: actions/checkout@v3
-
-      - name: Setup SSH Key
-        run: |
-          mkdir -p ~/.ssh
-          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
-          chmod 600 ~/.ssh/id_rsa
-          ssh-keyscan -H 15.235.199.146 >> ~/.ssh/known_hosts
-
-      - name: Deploy to Server
-        run: |
-          ssh -i ~/.ssh/id_rsa ubuntu@15.235.199.146 << 'EOF'
+        with:
+          fetch-depth: 0
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@v0.1.10
+        with:
+          host: 139.99.101.104
+          username: ubuntu
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
             cd ~/django-deploy-test
-            git pull origin main
-            source venv/bin/activate
-            pip install -r requirements.txt
-            python manage.py migrate
-            sudo fuser -k 8000/tcp || true
-            nohup python manage.py runserver 0.0.0.0:8000 &
-          EOF
+            git pull origin master
