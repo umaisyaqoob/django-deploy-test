@@ -40,15 +40,6 @@ pipeline {
             }
         }
 
-        stage('Collect Static Files') {
-            steps {
-                bat '''
-                    call venv\\Scripts\\activate
-                    python manage.py collectstatic --noinput
-                '''
-            }
-        }
-
         stage('Run Development Server') {
             steps {
                 bat '''
