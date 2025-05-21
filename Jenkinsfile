@@ -14,9 +14,9 @@ pipeline {
 
         stage('Set up Virtual Environment') {
             steps {
-                sh '''
+                bat '''
                     python -m venv venv
-                    source venv/bin/activate || venv\\Scripts\\activate
+                    call venv\\Scripts\\activate
                     pip install --upgrade pip
                 '''
             }
@@ -24,8 +24,8 @@ pipeline {
 
         stage('Migrate Database') {
             steps {
-                sh '''
-                    source venv/bin/activate || venv\\Scripts\\activate
+                bat '''
+                    call venv\\Scripts\\activate
                     python manage.py migrate
                 '''
             }
@@ -33,8 +33,8 @@ pipeline {
 
         stage('Collect Static Files') {
             steps {
-                sh '''
-                    source venv/bin/activate || venv\\Scripts\\activate
+                bat '''
+                    call venv\\Scripts\\activate
                     python manage.py collectstatic --noinput
                 '''
             }
@@ -42,9 +42,9 @@ pipeline {
 
         stage('Run Development Server') {
             steps {
-                sh '''
-                    source venv/bin/activate || venv\\Scripts\\activate
-                    nohup python manage.py runserver 0.0.0.0:8000 &
+                bat '''
+                    call venv\\Scripts\\activate
+                    start /b python manage.py runserver 0.0.0.0:8000
                 '''
             }
         }
