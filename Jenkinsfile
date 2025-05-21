@@ -2,54 +2,51 @@ pipeline {
     agent any
 
     environment {
-        PYTHON = 'python3'
-        VENV = 'venv'
+        PYTHONUNBUFFERED = 1
     }
 
     stages {
-
         stage('Clone Repo') {
             steps {
                 git 'https://github.com/umaisyaqoob/django-deploy-test.git'
             }
         }
 
-        stage('Setup Virtual Environment') {
+        stage('Set up Virtual Environment') {
             steps {
                 sh '''
-                    $PYTHON -m venv $VENV
-                    source $VENV/bin/activate
+                    python -m venv venv
+                    source venv/bin/activate || venv\\Scripts\\activate
                     pip install --upgrade pip
-                    pip install django
                 '''
             }
         }
 
-        stage('Run Migrations') {
+        stage('Migrate Database') {
             steps {
                 sh '''
-                    source $VENV/bin/activate
+                    source venv/bin/activate || venv\\Scripts\\activate
                     python manage.py migrate
                 '''
             }
         }
 
-        stage('Run Django Server') {
+        stage('Collect Static Files') {
             steps {
                 sh '''
-                    source $VENV/bin/activate
-                    nohup python manage.py runserver 0.0.0.0:8000 &
+                    source venv/bin/activate || venv\\Scripts\\activate
+                    python manage.py collectstatic --noinput
                 '''
             }
         }
-    }
 
-    post {
-        success {
-            echo '🎉 Django app deployed and running!'
-        }
-        failure {
-            echo '❌ Build failed. Please check logs.'
+        stage('Run Development Server') {
+            steps {
+                sh '''
+                    source venv/bin/activate || venv\\Scripts\\activate
+                    nohup python manage.py runserver 0.0.0.0:8000 &
+                '''
+            }
         }
     }
 }
