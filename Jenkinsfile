@@ -48,5 +48,22 @@ pipeline {
                 '''
             }
         }
+
+        stage('Deploy to Live Server') {
+            steps {
+                sshagent(credentials: ['live-server-ssh']) {
+                    sh '''
+                        ssh -o StrictHostKeyChecking=no ubuntu@139.99.101.104 '
+                            cd /home/ubuntu/django-deploy-test &&
+                            git pull origin main &&
+                            source venv/bin/activate &&
+                            pip install -r requirements.txt &&
+                            python manage.py migrate &&
+                            sudo systemctl restart django-app
+                        '
+                    '''
+                }
+            }
+        }
     }
 }
