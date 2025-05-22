@@ -1,51 +1,26 @@
 pipeline {
     agent any
-
     environment {
-        SSH_KEY = credentials('SSH_KEY')  // your Jenkins SSH credential ID
+        SSH_KEY = credentials('live-server-ssh')
         REMOTE_USER = "ubuntu"
         REMOTE_HOST = "139.99.101.104"
         REMOTE_PATH = "/home/ubuntu/django-deploy-test"
     }
-
     stages {
-
-        stage('Prepare Python Environment') {
+        stage('Deploy to Live Server') {
             steps {
-                bat '''
-                    python -m venv venv
-                    call venv\\Scripts\\activate
-                    pip install --upgrade pip
-                    pip install -r requirements.txt
-                '''
-            }
-        }
-
-        stage('Run Migrations') {
-            steps {
-                bat '''
-                    call venv\\Scripts\\activate
-                    python manage.py migrate
-                '''
-            }
-        }
-
-        stage('Fix SSH Key Permissions') {
-            steps {
-                bat '''
-                    echo Fixing SSH key permissions...
-                    icacls "%SSH_KEY%" /inheritance:r
-                    icacls "%SSH_KEY%" /grant:r "%USERNAME%:R"
-                '''
-            }
-        }
-
-        stage('Deploy to VPS') {
-            steps {
-                bat '''
-                    echo Deploying code to remote server...
-                    scp -i "%SSH_KEY%" -r . %REMOTE_USER%@%REMOTE_HOST%:%REMOTE_PATH%
-                '''
+                sshagent(['live-server-ssh']) {
+                    sh """
+                    ssh -o StrictHostKeyChecking=no $REMOTE_USER@$REMOTE_HOST '
+                        cd $REMOTE_PATH &&
+                        git pull &&
+                        source venv/bin/activate &&
+                        pip install -r requirements.txt &&
+                        python manage.py migrate &&
+                        sudo systemctl restart gunicorn
+                    '
+                    """
+                }
             }
         }
     }
