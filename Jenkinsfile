@@ -37,8 +37,6 @@ pipeline {
           bat '''
             icacls "%SSH_KEY%" /inheritance:r /grant:r "%USERDOMAIN%\%USERNAME%:R"
           '''
-          // Deploy commands via SSH, no StrictModes flag
-          bat """
             ssh -i %SSH_KEY% -o StrictHostKeyChecking=no %SSH_USER%@139.99.101.104 ^
               "cd ~/django-deploy-test && \
                git pull origin master && \
