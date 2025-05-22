@@ -35,18 +35,21 @@ pipeline {
         )]) {
           // Tighten permissions on the key file so SSH will accept it on Windows
           bat '''
-            icacls "%SSH_KEY%" /inheritance:r /grant:r "%USERDOMAIN%\%USERNAME%:R"
+            icacls "%SSH_KEY%" /inheritance:r /grant:r "%USERDOMAIN%\\%USERNAME%:R"
           '''
+
+          // Deploy via SSH
+          bat '''
             ssh -i %SSH_KEY% -o StrictHostKeyChecking=no %SSH_USER%@139.99.101.104 ^
               "cd ~/django-deploy-test && \
-               git pull origin master && \
-               source venv/bin/activate && \
-               pip install -r requirements.txt && \
-               python manage.py migrate && \
-               sudo systemctl restart django-app"
-          """
+              git pull origin master && \
+              source venv/bin/activate && \
+              pip install -r requirements.txt && \
+              python manage.py migrate && \
+              sudo systemctl restart django-app"
+          '''
         }
       }
     }
   }
-}}
+}
